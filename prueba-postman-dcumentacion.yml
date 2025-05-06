@@ -1,0 +1,237 @@
+openapi: 3.0.3
+info:
+  title: Documentacion prueba postman
+  version: "1.0.0"
+  description: API para creación, recarga y autorización de vouchers.
+
+servers:
+  - url: https://api-payments-qa.avtest.ink/api_qwikcilver_in
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    SubscriptionKeyHeader:
+      name: Ocp-Apim-Subscription-Key
+      in: header
+      required: true
+      schema:
+        type: string
+      example: f80b16f56a3b4a4da66eb649178bbe9e
+  schemas:
+    Beneficiary:
+      type: object
+      properties:
+        first-name:
+          type: string
+        last-name:
+          type: string
+      required:
+        - first-name
+        - last-name
+
+paths:
+
+  /createVoucher:
+    post:
+      summary: Crea un nuevo voucher
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SubscriptionKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json;charset=UTF-8:
+            schema:
+              type: object
+              properties:
+                create-voucher:
+                  type: object
+                  properties:
+                    channel:
+                      type: string
+                      example: AVCOM
+                    number-of-cards:
+                      type: string
+                      example: "1"
+                    reference-number:
+                      type: string
+                      example: CZ011
+                    group-name:
+                      type: string
+                      example: AV Refund/ Payment feedback
+                    amount:
+                      type: string
+                      example: "100000"
+                    currency:
+                      type: string
+                      example: COP
+                    carrier:
+                      type: string
+                      example: AV
+                    agent:
+                      type: string
+                      example: "132"
+                    office-id:
+                      type: string
+                      example: BOGAVL3
+                    first-name:
+                      type: string
+                      example: Gregory
+                    last-name:
+                      type: string
+                      example: Isakov
+                    email:
+                      type: string
+                      format: email
+                      example: santiago.apellido@gmail.es
+                    mobile:
+                      type: string
+                      example: "3107898787"
+      responses:
+        '200':
+          description: Voucher creado correctamente
+
+  /preauth:
+    post:
+      summary: Preautoriza un voucher
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SubscriptionKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preauth:
+                  type: object
+                  properties:
+                    channel:
+                      type: string
+                      example: AVCOM
+                    reference-number:
+                      type: string
+                      example: TESTNIC
+                    cards:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          voucher:
+                            type: string
+                            example: "{{VoucherNumber}}"
+                          pin:
+                            type: string
+                            example: "{{VoucherPin}}"
+                          currency:
+                            type: string
+                            example: GBP
+                          amount:
+                            type: string
+                            example: "1432305"
+                          carrier:
+                            type: string
+                            example: AV
+                          agent:
+                            type: string
+                            example: Avianca
+                          office-id:
+                            type: string
+                            example: AirlineOffice1
+                          beneficiaries:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Beneficiary'
+      responses:
+        '200':
+          description: Preautorización exitosa
+
+  /reloadVoucher:
+    post:
+      summary: Recarga un voucher existente
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SubscriptionKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reload:
+                  type: object
+                  properties:
+                    channel:
+                      type: string
+                      example: AVCOM
+                    reference-number:
+                      type: string
+                      example: test15
+                    cards:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          voucher:
+                            type: string
+                            example: "{{VoucherNumber}}"
+                          currency:
+                            type: string
+                            example: EUR
+                          amount:
+                            type: string
+                            example: "500"
+                          carrier:
+                            type: string
+                            example: AV
+                          agent:
+                            type: string
+                            example: Avianca
+                          office-id:
+                            type: string
+                            example: AirlineOffice1
+                          beneficiaries:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Beneficiary'
+      responses:
+        '200':
+          description: Recarga realizada correctamente
+
+  /token:
+    post:
+      summary: Obtiene token de autenticación
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+                resource:
+                  type: string
+      responses:
+        '200':
+          description: Token generado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
